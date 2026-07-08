@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="TemplateData/style.css">
   </head>
   <body>
+    <audio id="loading-music" loop>
+      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+    </audio>
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -131,6 +134,23 @@
           slides[currentSlide].classList.add("active");
         }
       }, 4000);
+
+      // Play loading music on first user click or touch
+      var music = document.getElementById("loading-music");
+      if (music) {
+        music.volume = 0.5; // Set moderate volume
+      }
+      function playMusic() {
+        if (music) {
+          music.play().catch(function(err) {
+            console.log("Audio play prevented: ", err);
+          });
+        }
+        window.removeEventListener("click", playMusic);
+        window.removeEventListener("touchstart", playMusic);
+      }
+      window.addEventListener("click", playMusic);
+      window.addEventListener("touchstart", playMusic);
  
       var script = document.createElement("script");
       script.src = loaderUrl;
@@ -141,6 +161,19 @@
               }).then((unityInstance) => {
                 document.querySelector("#unity-loading-bar").style.opacity = 0;
                 clearInterval(slideInterval);
+                
+                // Fade out music
+                if (music) {
+                  var fadeAudioInterval = setInterval(function() {
+                    if (music.volume > 0.05) {
+                      music.volume -= 0.05;
+                    } else {
+                      music.pause();
+                      clearInterval(fadeAudioInterval);
+                    }
+                  }, 100);
+                }
+
                 setTimeout(() => {
                   document.querySelector("#unity-loading-bar").style.display = "none";
                 }, 1000);
